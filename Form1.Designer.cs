@@ -31,7 +31,11 @@ namespace WordPad
         {
             this.Load = new System.Windows.Forms.Button();
             this.Save = new System.Windows.Forms.Button();
-            this.richTextBox1 = new System.Windows.Forms.RichTextBox();
+            this.RTBTextBox = new System.Windows.Forms.RichTextBox();
+            this.Undo = new System.Windows.Forms.Button();
+            this.Redo = new System.Windows.Forms.Button();
+            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.SuspendLayout();
             // 
             // Load
@@ -54,20 +58,50 @@ namespace WordPad
             this.Save.Text = "儲存";
             this.Save.UseVisualStyleBackColor = true;
             // 
-            // richTextBox1
+            // RTBTextBox
             // 
-            this.richTextBox1.Location = new System.Drawing.Point(12, 54);
-            this.richTextBox1.Name = "richTextBox1";
-            this.richTextBox1.Size = new System.Drawing.Size(776, 384);
-            this.richTextBox1.TabIndex = 2;
-            this.richTextBox1.Text = "";
+            this.RTBTextBox.Font = new System.Drawing.Font("新細明體", 18F);
+            this.RTBTextBox.Location = new System.Drawing.Point(12, 54);
+            this.RTBTextBox.Name = "RTBTextBox";
+            this.RTBTextBox.Size = new System.Drawing.Size(776, 384);
+            this.RTBTextBox.TabIndex = 2;
+            this.RTBTextBox.Text = "";
+            // 
+            // Undo
+            // 
+            this.Undo.Font = new System.Drawing.Font("新細明體", 18F);
+            this.Undo.Location = new System.Drawing.Point(570, 12);
+            this.Undo.Name = "Undo";
+            this.Undo.Size = new System.Drawing.Size(106, 36);
+            this.Undo.TabIndex = 3;
+            this.Undo.Text = "復原";
+            this.Undo.UseVisualStyleBackColor = true;
+            // 
+            // Redo
+            // 
+            this.Redo.Font = new System.Drawing.Font("新細明體", 18F);
+            this.Redo.Location = new System.Drawing.Point(682, 12);
+            this.Redo.Name = "Redo";
+            this.Redo.Size = new System.Drawing.Size(106, 36);
+            this.Redo.TabIndex = 4;
+            this.Redo.Text = "重做";
+            this.Redo.UseVisualStyleBackColor = true;
+            // 
+            // openFileDialog1
+            // 
+            this.openFileDialog1.FileName = "openFileDialog1";
+            // 
+            // saveFileDialog1
+            // 
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.richTextBox1);
+            this.Controls.Add(this.Redo);
+            this.Controls.Add(this.Undo);
+            this.Controls.Add(this.RTBTextBox);
             this.Controls.Add(this.Save);
             this.Controls.Add(this.Load);
             this.Name = "Form1";
@@ -80,7 +114,11 @@ namespace WordPad
 
         private System.Windows.Forms.Button Load;
         private System.Windows.Forms.Button Save;
-        private System.Windows.Forms.RichTextBox richTextBox1;
+        private System.Windows.Forms.RichTextBox RTBTextBox;
+        private System.Windows.Forms.Button Undo;
+        private System.Windows.Forms.Button Redo;
+        private System.Windows.Forms.OpenFileDialog openFileDialog1;
+        private System.Windows.Forms.SaveFileDialog saveFileDialog1;
     }
 }
 
