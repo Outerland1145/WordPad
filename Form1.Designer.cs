@@ -47,6 +47,7 @@ namespace WordPad
             this.Load.TabIndex = 0;
             this.Load.Text = "讀取";
             this.Load.UseVisualStyleBackColor = true;
+            this.Load.Click += new System.EventHandler(this.Load_Click);
             // 
             // Save
             // 
@@ -57,6 +58,7 @@ namespace WordPad
             this.Save.TabIndex = 1;
             this.Save.Text = "儲存";
             this.Save.UseVisualStyleBackColor = true;
+            this.Save.Click += new System.EventHandler(this.Save_Click);
             // 
             // RTBTextBox
             // 
@@ -76,6 +78,7 @@ namespace WordPad
             this.Undo.TabIndex = 3;
             this.Undo.Text = "復原";
             this.Undo.UseVisualStyleBackColor = true;
+            this.Undo.Click += new System.EventHandler(this.Undo_Click);
             // 
             // Redo
             // 
@@ -86,13 +89,11 @@ namespace WordPad
             this.Redo.TabIndex = 4;
             this.Redo.Text = "重做";
             this.Redo.UseVisualStyleBackColor = true;
+            this.Redo.Click += new System.EventHandler(this.Redo_Click);
             // 
             // openFileDialog1
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
-            // 
-            // saveFileDialog1
-            // 
             // 
             // Form1
             // 
