@@ -17,6 +17,9 @@ namespace WordPad
         {
             InitializeComponent();
         }
+        bool isUndo = false;
+        private Stack<string> textHistory = new Stack<string>();
+        private const int MaxHistoryCount = 10; // 最多紀錄10個紀錄
 
         private void Save_Click(object sender, EventArgs e)
         {
@@ -117,12 +120,57 @@ namespace WordPad
 
         private void Undo_Click(object sender, EventArgs e)
         {
+            isUndo = true;
+            if (textHistory.Count > 1)
+            {
+                textHistory.Pop(); // 移除當前的文本內容
+                RTBTextBox.Text = textHistory.Peek(); // 將堆疊頂部的文本內容設置為當前的文本內容                
+            }
+            UpdateListBox(); // 更新 ListBox
 
+            isUndo = false;
         }
 
         private void Redo_Click(object sender, EventArgs e)
         {
 
+        }
+
+        void UpdateListBox()
+        {
+            Listbox.Items.Clear(); // 清空 ListBox 中的元素
+
+            // 將堆疊中的內容逐一添加到 ListBox 中
+            foreach (string item in textHistory)
+            {
+                Listbox.Items.Add(item);
+            }
+        }
+
+        private void RTBTextBox_TextChanged(object sender, EventArgs e)
+        {
+            if (!isUndo)
+            {
+                // 將當前的文本內容加入堆疊
+                textHistory.Push(RTBTextBox.Text);
+
+                // 確保堆疊中只保留最多10個紀錄
+                if (textHistory.Count > MaxHistoryCount)
+                {
+                    // 移除最底下的一筆資料
+                    Stack<string> tempStack = new Stack<string>();
+                    for (int i = 0; i < MaxHistoryCount; i++)
+                    {
+                        tempStack.Push(textHistory.Pop());
+                    }
+                    textHistory.Pop(); // 移除最底下的一筆資料
+                    foreach (string item in tempStack)
+                    {
+                        textHistory.Push(item);
+                    }
+                }
+                UpdateListBox(); // 更新 ListBox
+            }
         }
     }
 }

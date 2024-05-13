@@ -36,6 +36,7 @@ namespace WordPad
             this.Redo = new System.Windows.Forms.Button();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
+            this.Listbox = new System.Windows.Forms.ListBox();
             this.SuspendLayout();
             // 
             // Load
@@ -65,9 +66,10 @@ namespace WordPad
             this.RTBTextBox.Font = new System.Drawing.Font("新細明體", 18F);
             this.RTBTextBox.Location = new System.Drawing.Point(12, 54);
             this.RTBTextBox.Name = "RTBTextBox";
-            this.RTBTextBox.Size = new System.Drawing.Size(776, 384);
+            this.RTBTextBox.Size = new System.Drawing.Size(545, 384);
             this.RTBTextBox.TabIndex = 2;
             this.RTBTextBox.Text = "";
+            this.RTBTextBox.TextChanged += new System.EventHandler(this.RTBTextBox_TextChanged);
             // 
             // Undo
             // 
@@ -95,11 +97,21 @@ namespace WordPad
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
             // 
+            // Listbox
+            // 
+            this.Listbox.FormattingEnabled = true;
+            this.Listbox.ItemHeight = 12;
+            this.Listbox.Location = new System.Drawing.Point(570, 54);
+            this.Listbox.Name = "Listbox";
+            this.Listbox.Size = new System.Drawing.Size(218, 364);
+            this.Listbox.TabIndex = 5;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.Listbox);
             this.Controls.Add(this.Redo);
             this.Controls.Add(this.Undo);
             this.Controls.Add(this.RTBTextBox);
@@ -120,6 +132,7 @@ namespace WordPad
         private System.Windows.Forms.Button Redo;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
+        private System.Windows.Forms.ListBox Listbox;
     }
 }
 
