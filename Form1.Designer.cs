@@ -38,6 +38,7 @@ namespace WordPad
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.Listbox = new System.Windows.Forms.ListBox();
             this.Redobox = new System.Windows.Forms.ListBox();
+            this.Clear = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // Load
@@ -116,11 +117,23 @@ namespace WordPad
             this.Redobox.Size = new System.Drawing.Size(218, 184);
             this.Redobox.TabIndex = 6;
             // 
+            // Clear
+            // 
+            this.Clear.Font = new System.Drawing.Font("新細明體", 11F);
+            this.Clear.Location = new System.Drawing.Point(451, 12);
+            this.Clear.Name = "Clear";
+            this.Clear.Size = new System.Drawing.Size(106, 36);
+            this.Clear.TabIndex = 7;
+            this.Clear.Text = "清除歷史紀錄";
+            this.Clear.UseVisualStyleBackColor = true;
+            this.Clear.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Clear_MouseClick);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.Clear);
             this.Controls.Add(this.Redobox);
             this.Controls.Add(this.Listbox);
             this.Controls.Add(this.Redo);
@@ -145,6 +158,7 @@ namespace WordPad
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
         private System.Windows.Forms.ListBox Listbox;
         private System.Windows.Forms.ListBox Redobox;
+        private System.Windows.Forms.Button Clear;
     }
 }
 

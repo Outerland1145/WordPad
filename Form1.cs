@@ -19,6 +19,7 @@ namespace WordPad
         }
         bool isUndo = false;
         bool isRedo = false;
+        String storage_cache;
         private Stack<string> textHistory = new Stack<string>();
         private Stack<string> UndoHistory = new Stack<string>();
         private const int MaxRecoverHistoryCount = 10; // 最多紀錄10個紀錄
@@ -127,6 +128,7 @@ namespace WordPad
             if (textHistory.Count > 1)
             {
                 textHistory.Pop(); // 移除當前的文本內容
+                storage_cache = RTBTextBox.Text;
                 UndoHistory.Push(RTBTextBox.Text); // 將原文本內容塞入回復堆疊中
                 RTBTextBox.Text = textHistory.Peek(); // 將堆疊頂部的文本內容設置為當前的文本內容
                 if (UndoHistory.Count > MaxRecoverHistoryCount)
@@ -157,6 +159,11 @@ namespace WordPad
             {
                 UndoHistory.Pop(); // 移除當前的文本內容
                 RTBTextBox.Text = UndoHistory.Peek(); // 將堆疊頂部的文本內容設置為當前的文本內容
+            }
+            else
+            {
+                RTBTextBox.Text = storage_cache;
+                Redobox.Items.Clear();
             }
             UpdateRedoBox();
             isRedo = false;
@@ -206,6 +213,12 @@ namespace WordPad
                 }
                 UpdateListBox(); // 更新 ListBox
             }
+        }
+
+        private void Clear_MouseClick(object sender, MouseEventArgs e)
+        {
+            Redobox.Items.Clear();
+            Listbox.Items.Clear();
         }
     }
 }
