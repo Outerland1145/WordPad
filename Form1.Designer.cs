@@ -37,6 +37,7 @@ namespace WordPad
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.Listbox = new System.Windows.Forms.ListBox();
+            this.Redobox = new System.Windows.Forms.ListBox();
             this.SuspendLayout();
             // 
             // Load
@@ -103,14 +104,24 @@ namespace WordPad
             this.Listbox.ItemHeight = 12;
             this.Listbox.Location = new System.Drawing.Point(570, 54);
             this.Listbox.Name = "Listbox";
-            this.Listbox.Size = new System.Drawing.Size(218, 364);
+            this.Listbox.Size = new System.Drawing.Size(218, 184);
             this.Listbox.TabIndex = 5;
+            // 
+            // Redobox
+            // 
+            this.Redobox.FormattingEnabled = true;
+            this.Redobox.ItemHeight = 12;
+            this.Redobox.Location = new System.Drawing.Point(570, 254);
+            this.Redobox.Name = "Redobox";
+            this.Redobox.Size = new System.Drawing.Size(218, 184);
+            this.Redobox.TabIndex = 6;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.Redobox);
             this.Controls.Add(this.Listbox);
             this.Controls.Add(this.Redo);
             this.Controls.Add(this.Undo);
@@ -133,6 +144,7 @@ namespace WordPad
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
         private System.Windows.Forms.ListBox Listbox;
+        private System.Windows.Forms.ListBox Redobox;
     }
 }
 

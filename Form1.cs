@@ -18,7 +18,10 @@ namespace WordPad
             InitializeComponent();
         }
         bool isUndo = false;
+        bool isRedo = false;
         private Stack<string> textHistory = new Stack<string>();
+        private Stack<string> UndoHistory = new Stack<string>();
+        private const int MaxRecoverHistoryCount = 10; // 最多紀錄10個紀錄
         private const int MaxHistoryCount = 10; // 最多紀錄10個紀錄
 
         private void Save_Click(object sender, EventArgs e)
@@ -124,8 +127,24 @@ namespace WordPad
             if (textHistory.Count > 1)
             {
                 textHistory.Pop(); // 移除當前的文本內容
-                RTBTextBox.Text = textHistory.Peek(); // 將堆疊頂部的文本內容設置為當前的文本內容                
+                UndoHistory.Push(RTBTextBox.Text); // 將原文本內容塞入回復堆疊中
+                RTBTextBox.Text = textHistory.Peek(); // 將堆疊頂部的文本內容設置為當前的文本內容
+                if (UndoHistory.Count > MaxRecoverHistoryCount)
+                {
+                    // 移除最底下的一筆資料
+                    Stack<string> tempStack = new Stack<string>();
+                    for (int i = 0; i < MaxRecoverHistoryCount; i++)
+                    {
+                        tempStack.Push(UndoHistory.Pop());
+                    }
+                    UndoHistory.Pop(); // 移除最底下的一筆資料
+                    foreach (string item in tempStack)
+                    {
+                        UndoHistory.Push(item);
+                    }
+                }
             }
+            UpdateRedoBox(); // 更新 RedoBox
             UpdateListBox(); // 更新 ListBox
 
             isUndo = false;
@@ -133,9 +152,25 @@ namespace WordPad
 
         private void Redo_Click(object sender, EventArgs e)
         {
-
+            isRedo = true;
+            if (UndoHistory.Count > 1)
+            {
+                UndoHistory.Pop(); // 移除當前的文本內容
+                RTBTextBox.Text = UndoHistory.Peek(); // 將堆疊頂部的文本內容設置為當前的文本內容
+            }
+            UpdateRedoBox();
+            isRedo = false;
         }
+        void UpdateRedoBox()
+        {
+            Redobox.Items.Clear(); // 清空 ListBox 中的元素
 
+            // 將堆疊中的內容逐一添加到 ListBox 中
+            foreach (string item in UndoHistory)
+            {
+                Redobox.Items.Add(item);
+            }
+        }
         void UpdateListBox()
         {
             Listbox.Items.Clear(); // 清空 ListBox 中的元素
