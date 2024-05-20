@@ -16,7 +16,12 @@ namespace WordPad
         public Form1()
         {
             InitializeComponent();
+
+            InitializeFontComboBox();
+            InitializeFontSizeComboBox();
+            InitializeFontStyleComboBox();
         }
+        bool isUndoRedo = false;
         bool isUndo = false;
         bool isRedo = false;
         String storage_cache;
@@ -24,6 +29,71 @@ namespace WordPad
         private Stack<string> UndoHistory = new Stack<string>();
         private const int MaxRecoverHistoryCount = 10; // 最多紀錄10個紀錄
         private const int MaxHistoryCount = 10; // 最多紀錄10個紀錄
+        private void InitializeFontComboBox()
+        {
+            foreach (FontFamily font in FontFamily.Families)
+            {
+                Font.Items.Add(font.Name);
+            }
+            Font.SelectedIndex = 0;
+        }
+
+        // 字體大小初始化
+        private void InitializeFontSizeComboBox()
+        {
+            for (int i = 8; i <= 72; i += 2)
+            {
+                FontSize.Items.Add(i);
+            }
+            FontSize.SelectedIndex = 2;
+        }
+
+        // 字體樣式初始化
+        private void InitializeFontStyleComboBox()
+        {
+            FontStyleCombox.Items.Add(FontStyle.Regular.ToString());
+            FontStyleCombox.Items.Add(FontStyle.Bold.ToString());
+            FontStyleCombox.Items.Add(FontStyle.Italic.ToString());
+            FontStyleCombox.Items.Add(FontStyle.Underline.ToString());
+            FontStyleCombox.Items.Add(FontStyle.Strikeout.ToString());
+            FontStyleCombox.SelectedIndex = 0;
+        }
+
+        private void comboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (RTBTextBox.SelectionFont != null)
+            {
+                // 確保選擇的字型、大小和樣式都不為 null
+                string selectedFont = Font.SelectedItem?.ToString();
+                string selectedSizeStr = FontSize.SelectedItem?.ToString();
+                string selectedStyleStr = FontStyleCombox.SelectedItem?.ToString();
+
+                if (selectedFont != null && selectedSizeStr != null && selectedStyleStr != null)
+                {
+                    float selectedSize = float.Parse(selectedSizeStr);
+                    FontStyle selectedStyle = (FontStyle)Enum.Parse(typeof(FontStyle), selectedStyleStr);
+
+                    // 獲取當前選擇的文字的字型和樣式
+                    Font currentFont = RTBTextBox.SelectionFont;
+                    FontStyle newStyle = currentFont.Style;
+
+                    // 檢查是否需要應用新的樣式
+                    if (FontStyleCombox.SelectedItem.ToString() == FontStyle.Bold.ToString())
+                        newStyle = FontStyle.Bold;
+                    else if (FontStyleCombox.SelectedItem.ToString() == FontStyle.Italic.ToString())
+                        newStyle = FontStyle.Italic;
+                    else if (FontStyleCombox.SelectedItem.ToString() == FontStyle.Underline.ToString())
+                        newStyle = FontStyle.Underline;
+                    else if (FontStyleCombox.SelectedItem.ToString() == FontStyle.Strikeout.ToString())
+                        newStyle = FontStyle.Strikeout;
+                    else
+                        newStyle = FontStyle.Regular;
+
+                    Font newFont = new Font(selectedFont, selectedSize, newStyle);
+                    RTBTextBox.SelectionFont = newFont;
+                }
+            }
+        }
 
         private void Save_Click(object sender, EventArgs e)
         {
@@ -124,7 +194,7 @@ namespace WordPad
 
         private void Undo_Click(object sender, EventArgs e)
         {
-            isUndo = true;
+            isUndoRedo = true;
             if (textHistory.Count > 1)
             {
                 textHistory.Pop(); // 移除當前的文本內容
@@ -149,16 +219,17 @@ namespace WordPad
             UpdateRedoBox(); // 更新 RedoBox
             UpdateListBox(); // 更新 ListBox
 
-            isUndo = false;
+            isUndoRedo = false;
         }
 
         private void Redo_Click(object sender, EventArgs e)
         {
-            isRedo = true;
+            isUndoRedo = true;
             if (UndoHistory.Count > 1)
             {
                 UndoHistory.Pop(); // 移除當前的文本內容
                 RTBTextBox.Text = UndoHistory.Peek(); // 將堆疊頂部的文本內容設置為當前的文本內容
+                storage_cache = UndoHistory.Peek();
             }
             else
             {
@@ -166,7 +237,7 @@ namespace WordPad
                 Redobox.Items.Clear();
             }
             UpdateRedoBox();
-            isRedo = false;
+            isUndoRedo = false;
         }
         void UpdateRedoBox()
         {
@@ -191,7 +262,7 @@ namespace WordPad
 
         private void RTBTextBox_TextChanged(object sender, EventArgs e)
         {
-            if (!isUndo)
+            if (!isUndoRedo)
             {
                 // 將當前的文本內容加入堆疊
                 textHistory.Push(RTBTextBox.Text);
@@ -219,6 +290,10 @@ namespace WordPad
         {
             Redobox.Items.Clear();
             Listbox.Items.Clear();
+            textHistory.Clear();
+            UndoHistory.Clear();
+
+
         }
     }
 }
