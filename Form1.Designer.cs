@@ -138,6 +138,7 @@ namespace WordPad
             this.Font.Name = "Font";
             this.Font.Size = new System.Drawing.Size(121, 20);
             this.Font.TabIndex = 8;
+            this.Font.SelectedValueChanged += new System.EventHandler(this.comboBox_SelectedIndexChanged);
             // 
             // FontSize
             // 
@@ -146,6 +147,7 @@ namespace WordPad
             this.FontSize.Name = "FontSize";
             this.FontSize.Size = new System.Drawing.Size(80, 20);
             this.FontSize.TabIndex = 9;
+            this.FontSize.SelectedValueChanged += new System.EventHandler(this.comboBox_SelectedIndexChanged);
             // 
             // FontStyleCombox
             // 
@@ -154,6 +156,7 @@ namespace WordPad
             this.FontStyleCombox.Name = "FontStyleCombox";
             this.FontStyleCombox.Size = new System.Drawing.Size(121, 20);
             this.FontStyleCombox.TabIndex = 10;
+            this.FontStyleCombox.SelectedValueChanged += new System.EventHandler(this.comboBox_SelectedIndexChanged);
             // 
             // Form1
             // 

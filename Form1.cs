@@ -29,6 +29,8 @@ namespace WordPad
         private Stack<string> UndoHistory = new Stack<string>();
         private const int MaxRecoverHistoryCount = 10; // 最多紀錄10個紀錄
         private const int MaxHistoryCount = 10; // 最多紀錄10個紀錄
+        private int selectionStart = 0;
+        private int selectionLength = 0;
         private void InitializeFontComboBox()
         {
             foreach (FontFamily font in FontFamily.Families)
@@ -61,6 +63,8 @@ namespace WordPad
 
         private void comboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
+            selectionStart = RTBTextBox.SelectionStart;
+            selectionLength = RTBTextBox.SelectionLength;
             if (RTBTextBox.SelectionFont != null)
             {
                 // 確保選擇的字型、大小和樣式都不為 null
@@ -93,7 +97,10 @@ namespace WordPad
                     RTBTextBox.SelectionFont = newFont;
                 }
             }
+            RTBTextBox.Focus();
+            RTBTextBox.Select(selectionStart, selectionLength);
         }
+        
 
         private void Save_Click(object sender, EventArgs e)
         {
@@ -224,20 +231,27 @@ namespace WordPad
 
         private void Redo_Click(object sender, EventArgs e)
         {
-            isUndoRedo = true;
             if (UndoHistory.Count > 1)
             {
-                UndoHistory.Pop(); // 移除當前的文本內容
-                RTBTextBox.Text = UndoHistory.Peek(); // 將堆疊頂部的文本內容設置為當前的文本內容
-                storage_cache = UndoHistory.Peek();
+                isUndoRedo = true;
+                UndoHistory.Push(UndoHistory.Pop()); // 將回復堆疊最上面的紀錄移出，再堆到重作堆疊
+                RTBTextBox.Text = UndoHistory.Peek(); // 將回復堆疊最上面一筆紀錄顯示
+                UpdateRedoBox();
+                isUndoRedo = false;
             }
-            else
-            {
-                RTBTextBox.Text = storage_cache;
-                Redobox.Items.Clear();
-            }
-            UpdateRedoBox();
-            isUndoRedo = false;
+            //if (UndoHistory.Count > 1)
+            //{
+               // UndoHistory.Pop(); // 移除當前的文本內容
+               // RTBTextBox.Text = UndoHistory.Peek(); // 將堆疊頂部的文本內容設置為當前的文本內容
+               // storage_cache = UndoHistory.Peek();
+            //}
+           // else
+            //{
+                //RTBTextBox.Text = storage_cache;
+               //Redobox.Items.Clear();
+            //}
+            //UpdateRedoBox();
+            //isUndoRedo = false;
         }
         void UpdateRedoBox()
         {
