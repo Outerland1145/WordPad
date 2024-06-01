@@ -23,8 +23,10 @@ namespace WordPad
         }
         bool isUndoRedo = false;
         String storage_cache;
-        private Stack<string> textHistory = new Stack<string>();
-        private Stack<string> UndoHistory = new Stack<string>();
+        private Stack<MemoryStream> undoStack = new Stack<MemoryStream>(); // 回復堆疊
+        private Stack<MemoryStream> redoStack = new Stack<MemoryStream>(); // 重作堆疊
+        //private Stack<string> textHistory = new Stack<string>();
+        //private Stack<string> UndoHistory = new Stack<string>();
         private const int MaxRecoverHistoryCount = 10; // 最多紀錄10個紀錄
         private const int MaxHistoryCount = 10; // 最多紀錄10個紀錄
         private int selectionStart = 0;                            // 記錄文字反白的起點
@@ -227,79 +229,48 @@ namespace WordPad
                 MessageBox.Show("使用者取消了選擇檔案操作。", "訊息", MessageBoxButtons.OKCancel, MessageBoxIcon.Exclamation);
             }
         }
+        private void SaveCurrentStateToStack()
+        {
+            // 創建一個新的 MemoryStream 來保存文字編輯狀態
+            MemoryStream memoryStream = new MemoryStream();
+            // 將 RichTextBox 的內容保存到 memoryStream
+            RTBTextBox.SaveFile(memoryStream, RichTextBoxStreamType.RichText);
+            // 將 memoryStream 放入回復堆疊
+            undoStack.Push(memoryStream);
+        }
 
+        // 將文字狀態從記憶體中顯示到 RichTextBox
+        private void LoadFromMemory(MemoryStream memoryStream)
+        {
+            // 將 memoryStream 的指標重置到開始位置
+            memoryStream.Seek(0, SeekOrigin.Begin);
+            // 將 memoryStream 的內容放到到 RichTextBox
+            RTBTextBox.LoadFile(memoryStream, RichTextBoxStreamType.RichText);
+        }
         private void Undo_Click(object sender, EventArgs e)
         {
             isUndoRedo = true;
-            if (textHistory.Count > 1)
+            if (undoStack.Count > 1)
             {
-                textHistory.Pop(); // 移除當前的文本內容
-                storage_cache = RTBTextBox.Text;
-                UndoHistory.Push(RTBTextBox.Text); // 將原文本內容塞入回復堆疊中
-                RTBTextBox.Text = textHistory.Peek(); // 將堆疊頂部的文本內容設置為當前的文本內容
-                if (UndoHistory.Count > MaxRecoverHistoryCount)
-                {
-                    // 移除最底下的一筆資料
-                    Stack<string> tempStack = new Stack<string>();
-                    for (int i = 0; i < MaxRecoverHistoryCount; i++)
-                    {
-                        tempStack.Push(UndoHistory.Pop());
-                    }
-                    UndoHistory.Pop(); // 移除最底下的一筆資料
-                    foreach (string item in tempStack)
-                    {
-                        UndoHistory.Push(item);
-                    }
-                }
+                isUndoRedo = true;
+                redoStack.Push(undoStack.Pop()); // 將回復堆疊最上面的紀錄移出，再堆到重作堆疊
+                MemoryStream lastSavedState = undoStack.Peek(); // 將回復堆疊最上面一筆紀錄顯示
+                LoadFromMemory(lastSavedState);
+                isUndoRedo = false;
             }
-            UpdateRedoBox(); // 更新 RedoBox
-            UpdateListBox(); // 更新 ListBox
 
             isUndoRedo = false;
         }
 
         private void Redo_Click(object sender, EventArgs e)
         {
-            if (UndoHistory.Count > 1)
+            if (redoStack.Count > 0)
             {
                 isUndoRedo = true;
-                UndoHistory.Push(UndoHistory.Pop()); // 將回復堆疊最上面的紀錄移出，再堆到重作堆疊
-                RTBTextBox.Text = UndoHistory.Peek(); // 將回復堆疊最上面一筆紀錄顯示
-                UpdateRedoBox();
+                undoStack.Push(redoStack.Pop()); // 將重作堆疊最上面的紀錄移出，再堆到回復堆疊
+                MemoryStream lastSavedState = undoStack.Peek(); // 將回復堆疊最上面一筆紀錄顯示
+                LoadFromMemory(lastSavedState);
                 isUndoRedo = false;
-            }
-            //if (UndoHistory.Count > 1)
-            //{
-               // UndoHistory.Pop(); // 移除當前的文本內容
-               // RTBTextBox.Text = UndoHistory.Peek(); // 將堆疊頂部的文本內容設置為當前的文本內容
-               // storage_cache = UndoHistory.Peek();
-            //}
-           // else
-            //{
-                //RTBTextBox.Text = storage_cache;
-               //Redobox.Items.Clear();
-            //}
-            //UpdateRedoBox();
-            //isUndoRedo = false;
-        }
-        void UpdateRedoBox()
-        {
-            Redobox.Items.Clear(); // 清空 ListBox 中的元素
-
-            // 將堆疊中的內容逐一添加到 ListBox 中
-            foreach (string item in UndoHistory)
-            {
-                Redobox.Items.Add(item);
-            }
-        }
-        void UpdateListBox()
-        {
-            Listbox.Items.Clear(); // 清空 ListBox 中的元素
-
-            // 將堆疊中的內容逐一添加到 ListBox 中
-            foreach (string item in textHistory)
-            {
-                Listbox.Items.Add(item);
             }
         }
 
@@ -308,33 +279,31 @@ namespace WordPad
             if (!isUndoRedo)
             {
                 // 將當前的文本內容加入堆疊
-                textHistory.Push(RTBTextBox.Text);
-
+                SaveCurrentStateToStack(); // 將當前的文本內容加入堆疊
+                redoStack.Clear();            // 清空重作堆疊
                 // 確保堆疊中只保留最多10個紀錄
-                if (textHistory.Count > MaxHistoryCount)
+                if (undoStack.Count > MaxHistoryCount)
                 {
-                    // 移除最底下的一筆資料
-                    Stack<string> tempStack = new Stack<string>();
+                    // 用一個臨時堆疊，將除了最下面一筆的文字記錄之外，將文字紀錄堆疊由上而下，逐一移除再堆疊到臨時堆疊之中
+                    Stack<MemoryStream> tempStack = new Stack<MemoryStream>();
                     for (int i = 0; i < MaxHistoryCount; i++)
                     {
-                        tempStack.Push(textHistory.Pop());
+                        tempStack.Push(undoStack.Pop());
                     }
-                    textHistory.Pop(); // 移除最底下的一筆資料
-                    foreach (string item in tempStack)
+                    undoStack.Clear(); // 清空堆疊
+                                       // 文字編輯堆疊紀錄清空之後，再將暫存堆疊（tempStack）中的資料，逐一放回到文字編輯堆疊紀錄
+                    foreach (MemoryStream item in tempStack)
                     {
-                        textHistory.Push(item);
+                        undoStack.Push(item);
                     }
                 }
-                UpdateListBox(); // 更新 ListBox
             }
         }
 
         private void Clear_MouseClick(object sender, MouseEventArgs e)
         {
-            Redobox.Items.Clear();
-            Listbox.Items.Clear();
-            textHistory.Clear();
-            UndoHistory.Clear();
+            undoStack.Clear();
+            redoStack.Clear();
         }
     }
 }
