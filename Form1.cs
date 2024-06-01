@@ -22,15 +22,13 @@ namespace WordPad
             InitializeFontStyleComboBox();
         }
         bool isUndoRedo = false;
-        bool isUndo = false;
-        bool isRedo = false;
         String storage_cache;
         private Stack<string> textHistory = new Stack<string>();
         private Stack<string> UndoHistory = new Stack<string>();
         private const int MaxRecoverHistoryCount = 10; // 最多紀錄10個紀錄
         private const int MaxHistoryCount = 10; // 最多紀錄10個紀錄
-        private int selectionStart = 0;
-        private int selectionLength = 0;
+        private int selectionStart = 0;                            // 記錄文字反白的起點
+        private int selectionLength = 0;                           // 記錄文字反白的長度
         private void InitializeFontComboBox()
         {
             foreach (FontFamily font in FontFamily.Families)
@@ -38,6 +36,11 @@ namespace WordPad
                 Font.Items.Add(font.Name);
             }
             Font.SelectedIndex = 0;
+            Console.WriteLine("Font ComboBox initialized with fonts:");
+            foreach (var item in Font.Items)
+            {
+                Console.WriteLine(item);
+            }
         }
 
         // 字體大小初始化
@@ -65,6 +68,7 @@ namespace WordPad
         {
             selectionStart = RTBTextBox.SelectionStart;
             selectionLength = RTBTextBox.SelectionLength;
+
             if (RTBTextBox.SelectionFont != null)
             {
                 // 確保選擇的字型、大小和樣式都不為 null
@@ -74,58 +78,85 @@ namespace WordPad
 
                 if (selectedFont != null && selectedSizeStr != null && selectedStyleStr != null)
                 {
-                    float selectedSize = float.Parse(selectedSizeStr);
-                    FontStyle selectedStyle = (FontStyle)Enum.Parse(typeof(FontStyle), selectedStyleStr);
+                    if (float.TryParse(selectedSizeStr, out float selectedSize))
+                    {
+                        // 獲取當前選擇的文字的字型和樣式
+                        Font currentFont = RTBTextBox.SelectionFont;
+                        FontStyle newStyle = currentFont.Style;
 
-                    // 獲取當前選擇的文字的字型和樣式
-                    Font currentFont = RTBTextBox.SelectionFont;
-                    FontStyle newStyle = currentFont.Style;
-
-                    // 檢查是否需要應用新的樣式
-                    if (FontStyleCombox.SelectedItem.ToString() == FontStyle.Bold.ToString())
-                        newStyle = FontStyle.Bold;
-                    else if (FontStyleCombox.SelectedItem.ToString() == FontStyle.Italic.ToString())
-                        newStyle = FontStyle.Italic;
-                    else if (FontStyleCombox.SelectedItem.ToString() == FontStyle.Underline.ToString())
-                        newStyle = FontStyle.Underline;
-                    else if (FontStyleCombox.SelectedItem.ToString() == FontStyle.Strikeout.ToString())
-                        newStyle = FontStyle.Strikeout;
-                    else
+                        // 更新樣式，允許多種樣式的組合
                         newStyle = FontStyle.Regular;
+                        if (selectedStyleStr.Contains("Bold"))
+                            newStyle |= FontStyle.Bold;
+                        if (selectedStyleStr.Contains("Italic"))
+                            newStyle |= FontStyle.Italic;
+                        if (selectedStyleStr.Contains("Underline"))
+                            newStyle |= FontStyle.Underline;
+                        if (selectedStyleStr.Contains("Strikeout"))
+                            newStyle |= FontStyle.Strikeout;
 
-                    Font newFont = new Font(selectedFont, selectedSize, newStyle);
-                    RTBTextBox.SelectionFont = newFont;
+                        try
+                        {
+                            // 創建新字體
+                            Font newFont = new Font(selectedFont, selectedSize, newStyle);
+                            RTBTextBox.SelectionFont = newFont;
+                            // 日誌訊息，確保字體已正確設置
+                            Console.WriteLine($"Font changed to: {newFont.Name}, Size: {newFont.Size}, Style: {newFont.Style}");
+                        }
+                        catch (Exception ex)
+                        {
+                            // 處理無效的字型名稱或其他錯誤
+                            MessageBox.Show($"無法應用字型: {selectedFont}\n錯誤訊息: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                    else
+                    {
+                        // 處理無效的字型大小
+                        MessageBox.Show("選擇的字型大小無效", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
+
             RTBTextBox.Focus();
             RTBTextBox.Select(selectionStart, selectionLength);
         }
-        
+
 
         private void Save_Click(object sender, EventArgs e)
         {
             // 設置對話方塊標題
             saveFileDialog1.Title = "儲存檔案";
             // 設置對話方塊篩選器，限制使用者只能選擇特定類型的檔案
-            saveFileDialog1.Filter = "文字檔案 (*.txt)|*.txt|所有檔案 (*.*)|*.*";
+            saveFileDialog1.Filter = "RTF格式檔案 (*.rtf)|*.rtf|文字檔案 (*.txt)|*.txt|所有檔案 (*.*)|*.*";
             // 如果希望預設開啟的檔案類型是文字檔案，可以這樣設置
             saveFileDialog1.FilterIndex = 1;
             // 如果希望對話方塊在開啟時顯示的初始目錄，可以設置 InitialDirectory
             saveFileDialog1.InitialDirectory = "C:\\";
 
             DialogResult result = saveFileDialog1.ShowDialog();
+            FileStream fileStream = null;
             if (result == DialogResult.OK)
             {
                 try
                 {
+                    // 使用者指定的儲存檔案的路徑
                     string saveFileName = saveFileDialog1.FileName;
-                    using (StreamWriter writer = new StreamWriter(saveFileName))
-                    {
-                        // 要寫入的資料
-                        string data = RTBTextBox.Text;
+                    string extension = Path.GetExtension(saveFileName);
 
-                        // 將資料寫入檔案
-                        writer.WriteLine(data);
+                    // 使用 using 與 FileStream 建立檔案，如果檔案已存在則覆寫
+                    using (fileStream = new FileStream(saveFileName, FileMode.Create, FileAccess.Write))
+                    {
+                        if (extension.ToLower() == ".txt")
+                        {
+                            // 將 RichTextBox 中的文字寫入檔案中
+                            byte[] data = Encoding.UTF8.GetBytes(RTBTextBox.Text);
+                            fileStream.Write(data, 0, data.Length);
+                        }
+                        else if (extension.ToLower() == ".rtf")
+                        {
+                            // 將RichTextBox中的內容保存為RTF格式
+                            RTBTextBox.SaveFile(fileStream, RichTextBoxStreamType.RichText);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -144,7 +175,7 @@ namespace WordPad
             // 設置對話方塊標題
             openFileDialog1.Title = "選擇檔案";
             // 設置對話方塊篩選器，限制使用者只能選擇特定類型的檔案
-            openFileDialog1.Filter = "文字檔案 (*.txt)|*.txt|所有檔案 (*.*)|*.*";
+            openFileDialog1.Filter = "RTF格式檔案 (*.rtf)|*.rtf|文字檔案 (*.txt)|*.txt|所有檔案 (*.*)|*.*";
             // 如果希望預設開啟的檔案類型是文字檔案，可以這樣設置
             openFileDialog1.FilterIndex = 1;
             // 如果希望對話方塊在開啟時顯示的初始目錄，可以設置 InitialDirectory
@@ -161,31 +192,29 @@ namespace WordPad
                     // 使用者在OpenFileDialog選擇的檔案
                     string selectedFileName = openFileDialog1.FileName;
 
-                    //// 使用 FileStream 打開檔案
-                    //// 建立一個檔案資料流，並且設定檔案名稱與檔案開啟模式為「開啟檔案」
-                    //FileStream fileStream = new FileStream(selectedFileName, FileMode.Open, FileAccess.Read);
-                    //// 讀取資料流
-                    //StreamReader streamReader = new StreamReader(fileStream);
-                    //// 將檔案內容顯示到 RichTextBox 中
-                    //rtbText.Text = streamReader.ReadToEnd();
-                    //// 關閉資料流與讀取資料流
-                    //fileStream.Close();
-                    //streamReader.Close();
+                    // 獲取文件的副檔名
+                    string fileExtension = Path.GetExtension(selectedFileName).ToLower();
 
-                    // 使用 using 與 FileStream 打開檔案
-                    using (FileStream fileStream = new FileStream(selectedFileName, FileMode.Open, FileAccess.Read))
+                    // 判斷副檔名是甚麼格式
+                    if (fileExtension == ".txt")
                     {
-                        // 使用 StreamReader 讀取檔案內容
-                        using (StreamReader streamReader = new StreamReader(fileStream, Encoding.UTF8))
+                        // 使用 using 與 FileStream 打開檔案
+                        using (FileStream fileStream = new FileStream(selectedFileName, FileMode.Open, FileAccess.Read))
                         {
-                            // 將檔案內容顯示到 RichTextBox 中
-                            RTBTextBox.Text = streamReader.ReadToEnd();
+                            // 使用 StreamReader 讀取檔案內容
+                            using (StreamReader streamReader = new StreamReader(fileStream, Encoding.UTF8))
+                            {
+                                // 將檔案內容顯示到 RichTextBox 中
+                                RTBTextBox.Text = streamReader.ReadToEnd();
+                            }
                         }
                     }
+                    else if (fileExtension == ".rtf")
+                    {
+                        // 如果是RTF文件，使用RichTextBox的LoadFile方法
+                        RTBTextBox.LoadFile(selectedFileName, RichTextBoxStreamType.RichText);
+                    }
 
-                    //// 更為簡單的做法，將檔案內容顯示到 RichTextBox 中
-                    //string fileContent = File.ReadAllText(selectedFileName);
-                    //rtbText.Text = fileContent;
                 }
                 catch (Exception ex)
                 {
@@ -306,8 +335,6 @@ namespace WordPad
             Listbox.Items.Clear();
             textHistory.Clear();
             UndoHistory.Clear();
-
-
         }
     }
 }
